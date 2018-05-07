@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import './App.css';
 
 const defaultStyle = {
-  color: '#FFF'
+  color: '#FFF',
+  textAlign: 'center'
 };
 class Aggregate extends Component {
   render() {
@@ -17,7 +18,7 @@ class Aggregate extends Component {
 class Filter extends Component {
   render() {
     return (
-      <div style={{defaultStyle}}>
+      <div style={defaultStyle}>
         <img />
         <input type="text" />
       </div>
