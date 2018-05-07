@@ -50,7 +50,8 @@ class PlaylistCounter extends Component {
     const playlists = this.props.playlists || 0;
     return (
       <div style={{...defaultStyle, width: '40%', display: 'inline-block'}}>
-        <h2>{playlists.length} playlists</h2>
+        <h2>{playlists.length} playlists
+        </h2>
       </div>
     );
   }
@@ -109,6 +110,12 @@ class App extends Component {
   render() {
     const user = this.state.serverData.user && this.state.serverData.user;
     const playlists = user && user.playlists;
+    let filteredPlaylists = playlists;
+    if (playlists) {
+      filteredPlaylists = playlists
+        .filter(playlist => playlist.name.toLowerCase()
+          .includes(this.state.filterString.toLowerCase()));
+    }
     return (
       <div className="App">
         {user ? 
@@ -116,13 +123,10 @@ class App extends Component {
           <h1 style={{...defaultStyle, fontSize: '54px'}}>
             {user.name}'s playlists
           </h1>
-          <PlaylistCounter playlists={playlists} />
-          <HoursCounter playlists={playlists} />
+          <PlaylistCounter playlists={filteredPlaylists} />
+          <HoursCounter playlists={filteredPlaylists} />
           <Filter onTextChange={text => this.setState({filterString: text})}/>
-          {playlists
-            .filter(playlist => playlist.name.toLowerCase()
-              .includes(this.state.filterString.toLowerCase()))
-            .map(playlist => <Playlist playlist={playlist} />)}
+          {filteredPlaylists.map(playlist => <Playlist playlist={playlist} />)}
         </div> : <h1 style={defaultStyle}>Loading...</h1>
         }
       </div>
