@@ -1,49 +1,12 @@
 import React, { Component } from 'react';
 import './App.css';
+import queryString from 'query-string';
 
 const defaultStyle = {
   color: '#FFF'
 };
 
-const fakeServerData = {
-  user: {
-    name: 'Juaning',
-    playlists: [
-      {
-        name: 'My favourites',
-        songs: [
-          { name: 'Beat it', duration: 1345 },
-          { name: 'Cannelloni maccaronni', duration: 2140 },
-          { name: 'Rosa helikopter', duration: 1749 }
-        ],
-      },
-      {
-        name: 'Discover weekly',
-        songs: [
-          { name: 'Beat it', duration: 1345 },
-          { name: 'Cannelloni maccaronni', duration: 2140 },
-          { name: 'Rosa helikopter', duration: 1749 }
-        ]
-      },
-      {
-        name: 'Another playlist - The best!',
-        songs: [
-          { name: 'Beat it', duration: 1345 },
-          { name: 'Cannelloni maccaronni', duration: 2140 },
-          { name: 'Rosa helikopter', duration: 1749 }
-        ]
-      },
-      {
-        name: 'Playlist - Yeah!',
-        songs: [
-          { name: 'Beat it', duration: 1345 },
-          { name: 'Cannelloni maccaronni', duration: 2140 },
-          { name: 'Rosa helikopter', duration: 1749 }
-        ]
-      },
-    ],
-  }
-};
+const spotifyMeUrl = 'https://api.spotify.com/v1/me';
 
 class PlaylistCounter extends Component {
   render() {
@@ -84,9 +47,10 @@ class Filter extends Component {
 class Playlist extends Component {
   render() {
     const {playlist} = this.props;
+    const imageUrl = playlist.images[0].url;
     return (
       <div style={{...defaultStyle, width: '25%', display: 'inline-block'}}>
-        <img />
+        <img src={imageUrl} style={{width: '75px'}} alt={playlist.name} />
         <h3>{playlist.name}</h3>
         <ul>
           {playlist.songs.map(song => <li>{song.name}</li>)}
@@ -100,22 +64,56 @@ class App extends Component {
   constructor() {
     super();
     this.state = {
-      serverData: {},
+      user: undefined,
+      playlists: undefined,
       filterString: ''
     }
   }
   componentDidMount() {
-    setTimeout(() => this.setState({serverData: fakeServerData}), 500);
+    const parsed = queryString.parse(window.location.search);
+    const {access_token} = parsed;
+
+    fetch(spotifyMeUrl, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      }
+    })
+    .then(response => response.json())
+    .then(data => this.setState({ user: { name: data.display_name }}));
+
+    fetch(`${spotifyMeUrl}/playlists`, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error === undefined) {
+        this.setState({
+          playlists: data.items.map(item => {
+            return {
+              name: item.name,
+              images: item.images,
+              songs: [
+                { name: 'Beat it', duration: 1345 },
+                { name: 'Cannelloni maccaronni', duration: 2140 },
+                { name: 'Rosa helikopter', duration: 1749 }
+              ]
+            }
+          })
+        })
+      }
+    });
   }
   render() {
-    const user = this.state.serverData.user && this.state.serverData.user;
-    const playlists = user && user.playlists;
-    let filteredPlaylists = playlists;
-    if (playlists) {
-      filteredPlaylists = playlists
-        .filter(playlist => playlist.name.toLowerCase()
-          .includes(this.state.filterString.toLowerCase()));
-    }
+    const user = this.state.user && this.state.user;
+    const playlists = this.state.playlists && this.state.playlists;
+    let filteredPlaylists = playlists
+      ? playlists
+          .filter(playlist => playlist.name.toLowerCase()
+          .includes(this.state.filterString.toLowerCase()))
+      : [];
+      console.log(user);
     return (
       <div className="App">
         {user ? 
@@ -127,7 +125,10 @@ class App extends Component {
           <HoursCounter playlists={filteredPlaylists} />
           <Filter onTextChange={text => this.setState({filterString: text})}/>
           {filteredPlaylists.map(playlist => <Playlist playlist={playlist} />)}
-        </div> : <h1 style={defaultStyle}>Loading...</h1>
+        </div> : <button onClick={() => window.location='http://localhost:8888/login'}
+          style={{padding: '20px', fontSize: '50px', marginTop: '20px'}}>
+            Sign in with Spotify
+        </button>
         }
       </div>
     );
