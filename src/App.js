@@ -73,7 +73,7 @@ class App extends Component {
     const parsed = queryString.parse(window.location.search);
     const {access_token} = parsed;
     if (!access_token) return;
-    
+
     fetch(spotifyMeUrl, {
       headers: {
         Authorization: `Bearer ${access_token}`,
@@ -126,7 +126,12 @@ class App extends Component {
           <HoursCounter playlists={filteredPlaylists} />
           <Filter onTextChange={text => this.setState({filterString: text})}/>
           {filteredPlaylists.map(playlist => <Playlist playlist={playlist} />)}
-        </div> : <button onClick={() => window.location='http://localhost:8888/login'}
+        </div> : <button onClick={() => {
+          window.location = window.location.includes('localhost')
+            ? 'http://localhost:8888/login'
+            : 'https://spotify-playlist-juaning-be.herokuapp.com/login'
+          }
+        }
           style={{padding: '20px', fontSize: '50px', marginTop: '20px'}}>
             Sign in with Spotify
         </button>
