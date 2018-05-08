@@ -89,21 +89,40 @@ class App extends Component {
     })
     .then(response => response.json())
     .then(data => {
-      if (data.error === undefined) {
-        this.setState({
-          playlists: data.items.map(item => {
-            return {
-              name: item.name,
-              images: item.images,
-              songs: [
-                { name: 'Beat it', duration: 1345 },
-                { name: 'Cannelloni maccaronni', duration: 2140 },
-                { name: 'Rosa helikopter', duration: 1749 }
-              ]
-            }
-          })
+      const playlists = data.items;
+      const fetchOfTracks = playlists.map(playlist => {
+        const responsePromise = fetch(playlist.tracks.href, {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          }
+        });
+        const dataPromise = responsePromise.then(response => response.json());
+        return dataPromise;
+      })
+      return Promise.all(fetchOfTracks)
+      .then(trackDatas => {
+        trackDatas.forEach((trackData, i) => {
+          playlists[i].trackDatas = trackData
         })
-      }
+        return playlists;
+      })
+    })
+    .then(playlists => {
+      console.log('playlists:', playlists);
+      this.setState({
+        playlists: playlists.map(playlist => {
+          return {
+            name: playlist.name,
+            images: playlist.images,
+            songs: playlist.trackDatas.items.slice(0,3).map(song => {
+              return {
+                name: song.track.name,
+                duration: song.track.duration_ms
+              }
+            })
+          }
+        })
+      })
     });
   }
   render() {
@@ -114,7 +133,6 @@ class App extends Component {
           .filter(playlist => playlist.name.toLowerCase()
           .includes(this.state.filterString.toLowerCase()))
       : [];
-      console.log(user);
     return (
       <div className="App">
         {user ? 
