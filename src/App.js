@@ -72,7 +72,8 @@ class App extends Component {
   componentDidMount() {
     const parsed = queryString.parse(window.location.search);
     const {access_token} = parsed;
-
+    if (!access_token) return;
+    
     fetch(spotifyMeUrl, {
       headers: {
         Authorization: `Bearer ${access_token}`,
