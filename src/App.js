@@ -127,7 +127,7 @@ class App extends Component {
           <Filter onTextChange={text => this.setState({filterString: text})}/>
           {filteredPlaylists.map(playlist => <Playlist playlist={playlist} />)}
         </div> : <button onClick={() => {
-          window.location = window.location.includes('localhost')
+          window.location = window.location.href.includes('localhost')
             ? 'http://localhost:8888/login'
             : 'https://spotify-playlist-juaning-be.herokuapp.com/login'
           }
