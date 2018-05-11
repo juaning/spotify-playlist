@@ -1,4 +1,7 @@
 html, body {
   background-color: gray;
-  text-align: center
+}
+
+body {
+  padding: 10px;
 }
